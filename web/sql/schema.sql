@@ -1,0 +1,31 @@
+CREATE DATABASE IF NOT EXISTS attendance_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE attendance_db;
+
+
+CREATE TABLE IF NOT EXISTS students (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id VARCHAR(50) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    photo_dir VARCHAR(255),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS attendance (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id VARCHAR(50) NOT NULL,
+    subject VARCHAR(100) DEFAULT 'General',
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'present',
+    INDEX(student_id),
+    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+
+-- optional: API tokens table
+CREATE TABLE IF NOT EXISTS api_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    description VARCHAR(255),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
