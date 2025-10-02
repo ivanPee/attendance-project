@@ -2,11 +2,12 @@ import cv2
 import numpy as np
 import os
 
-dataset_path = "uploads"
-model_path = "../../pi/trained_model.yml"
+# Paths
+dataset_path = "uploads"              # student images live here
+model_path = "trained_model.yml"      # save inside web/public/
 
 recognizer = cv2.face.LBPHFaceRecognizer_create()
-face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
 faces = []
 ids = []
@@ -28,9 +29,9 @@ for student_id in os.listdir(dataset_path):
         for (x, y, w, h) in detected:
             faces.append(img[y:y+h, x:x+w])
             try:
-                ids.append(int(student_id))
+                ids.append(int(student_id))  # student_id folder must be numeric
             except:
-                print(f"Skipped {student_id}, must be numeric.")
+                print(f"Skipped {student_id}, must be numeric")
 
 if len(faces) == 0:
     print("No faces found. Please upload student images first.")
