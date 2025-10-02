@@ -1,20 +1,17 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Train Model</title>
-</head>
-<body>
-  <h2>Train Face Recognition Model</h2>
-  <form method="POST">
-    <button type="submit" name="train">Start Training</button>
-  </form>
+<?php include 'inc/header.php'; ?>
+    <div class="content">
+        <h2>Train Face Recognition Model</h2>
+        <form method="POST">
+            <button type="submit" name="train" class="btn btn-primary">Start Training</button>
+        </form>
 
-<?php
-if (isset($_POST['train'])) {
-    // adjust path to Python on your server
-    $output = shell_exec("python3 train_model.py 2>&1");
-    echo "<pre>$output</pre>";
-}
-?>
-</body>
-</html>
+
+        <?php
+            if (isset($_POST['train'])) {
+                // call python training script
+                $output = shell_exec("py train_model.py 2>&1");
+                echo "<div class='mt-3'><h5>Training Output:</h5><pre>$output</pre></div>";
+            }
+        ?>
+    </div>
+<?php include 'inc/footer.php'; ?>
