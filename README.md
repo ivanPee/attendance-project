@@ -23,3 +23,16 @@ GRANT ALL PRIVILEGES ON attendance_db.* TO 'attendance'@'%';
 
 -- Apply changes
 FLUSH PRIVILEGES;
+
+
+
+
+sudo rm -rf LCD-show
+
+git clone https://github.com/goodtft/LCD-show.git
+
+chmod -R 775 LCD-show
+
+cd LCD-show/
+
+sudo ./LCD35-show
