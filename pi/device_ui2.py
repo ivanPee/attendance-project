@@ -1,13 +1,9 @@
 import tkinter as tk
-import cv2
-import time
-import mysql.connector
-import datetime
-import os
-import requests
-import email.utils
 import subprocess
-from PIL import Image, ImageTk
+import requests
+import time
+import email.utils
+import os
 
 # Database config
 db_config = {
@@ -44,26 +40,29 @@ def update_model():
     except Exception as e:
         print("⚠️ Model update error:", e)
 
+
 def start_recognition():
-    """Opens a new fullscreen window for camera recognition."""
+    """Open the camera in a separate window using camera_window.py."""
     btn.pack_forget()
     status_label.config(text="📷 Starting camera...")
     root.update()
 
     update_model()
 
-    # Launch separate camera window
+    # Launch camera window in a separate process
     subprocess.Popen([
         "python3",
-        "/home/raspberrypi/attendance/attendance-project/pi/camera_window.py"
+        os.path.join(os.path.dirname(__file__), "camera_window.py")
     ])
 
     # Restore button after delay
     root.after(2000, show_button)
 
+
 def show_button():
     status_label.config(text="")
     btn.pack(pady=50)
+
 
 # Tkinter UI
 root = tk.Tk()
