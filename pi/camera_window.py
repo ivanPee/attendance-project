@@ -3,17 +3,17 @@ from PIL import Image, ImageTk
 import tkinter as tk
 
 def run_camera():
-    # Typical 3.5" LCD resolution
-    LCD_WIDTH = 480
-    LCD_HEIGHT = 320
+    # Smaller preview size
+    PREVIEW_WIDTH = 320
+    PREVIEW_HEIGHT = 240
 
     win = tk.Tk()
     win.title("Camera Window")
     win.configure(bg="black")
     
-    # Set minimum window size to LCD resolution
-    win.minsize(LCD_WIDTH, LCD_HEIGHT)
-    win.geometry(f"{LCD_WIDTH}x{LCD_HEIGHT}")
+    # Set fixed window size
+    win.minsize(PREVIEW_WIDTH, PREVIEW_HEIGHT)
+    win.geometry(f"{PREVIEW_WIDTH}x{PREVIEW_HEIGHT}")
 
     label = tk.Label(win, bg="black")
     label.pack(fill="both", expand=True)
@@ -30,8 +30,8 @@ def run_camera():
         if ret:
             # Resize frame to fit the window while maintaining aspect ratio
             frame_height, frame_width = frame.shape[:2]
-            scale_w = LCD_WIDTH / frame_width
-            scale_h = LCD_HEIGHT / frame_height
+            scale_w = PREVIEW_WIDTH / frame_width
+            scale_h = PREVIEW_HEIGHT / frame_height
             scale = min(scale_w, scale_h)
             new_w = int(frame_width * scale)
             new_h = int(frame_height * scale)
