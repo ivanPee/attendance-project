@@ -10,14 +10,14 @@ from PIL import Image, ImageTk  # for camera preview
 
 # Database config (adjust to your server)
 db_config = {
-    'host': 'localhost',
+    'host': '192.168.1.4',
     'user': 'root',
     'password': '',
     'database': 'attendance_db'
 }
 
 # Model locations
-SERVER_MODEL_URL = "http://localhost/attendance-project/web/public/trained_model.yml"
+SERVER_MODEL_URL = "http://192.168.1.4/attendance-project/web/public/trained_model.yml"
 LOCAL_MODEL = "trained_model.yml"
 
 def update_model():
