@@ -35,13 +35,13 @@ def update_model():
 def start_recognition():
     """Open camera preview and wait until it closes before restoring button."""
     btn.pack_forget()
-    status_label.config(text="📷 Opening camera preview...")
+    status_label.config(text="📷 Opening\ncamera preview...")
     root.update()
 
     # Optional: update model
     update_model()
 
-    # Launch camera preview and **wait for it to finish**
+    # Launch camera preview and wait for it to finish
     try:
         subprocess.run([
             "rpicam-hello",
@@ -69,7 +69,7 @@ status_label.pack(pady=20)
 
 btn = tk.Button(
     root,
-    text="📷 Tap to Get Attendance",
+    text="📷 Tap to\nGet Attendance",  # line break added here
     font=("Arial", 36),
     bg="#007bff",
     fg="white",
