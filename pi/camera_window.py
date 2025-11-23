@@ -1,41 +1,76 @@
 import cv2
-from PIL import Image, ImageTk
-import tkinter as tk
+import time
+from PIL import Image  # optional if you need image processing
+import mysql.connector
+import datetime
 
-# Target display size (adjust to your LCD)
-DISPLAY_WIDTH = 320
-DISPLAY_HEIGHT = 480
+# Database config
+db_config = {
+    'host': '192.168.1.4',
+    'user': 'root',
+    'password': '',
+    'database': 'attendance_db'
+}
+
+LOCAL_MODEL = "trained_model.yml"
 
 def run_camera():
-    win = tk.Tk()
-    win.attributes("-fullscreen", True)
-    win.title("Camera Window")
-    win.configure(bg="black")
+    # Load recognizer
+    recognizer = cv2.face.LBPHFaceRecognizer_create()
+    recognizer.read(LOCAL_MODEL)
 
-    label = tk.Label(win, bg="black")
-    label.pack(fill="both", expand=True)
+    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
-    # Use V4L2 device (libcamera-friendly)
-    cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
+    # Try using 0 or GStreamer pipeline
+    cap = cv2.VideoCapture(0)
 
-    # Set camera resolution lower to match small LCD
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+    if not cap.isOpened():
+        print("❌ Camera failed to open")
+        return
 
-    def update():
+    cv2.namedWindow("Camera Preview", cv2.WINDOW_NORMAL)
+    cv2.setWindowProperty("Camera Preview", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
+    start_time = time.time()
+    while True:
         ret, frame = cap.read()
-        if ret and frame is not None:
-            # Resize frame to LCD dimensions
-            frame = cv2.resize(frame, (DISPLAY_WIDTH, DISPLAY_HEIGHT))
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            img = Image.fromarray(frame)
-            imgtk = ImageTk.PhotoImage(image=img)
-            label.imgtk = imgtk
-            label.configure(image=imgtk)
-        label.after(30, update)  # ~30 FPS
+        if not ret:
+            continue
 
-    update()
-    win.mainloop()
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(gray, 1.2, 5)
+
+        for (x, y, w, h) in faces:
+            roi = gray[y:y+h, x:x+w]
+            roi = cv2.resize(roi, (200, 200))
+            id_, conf = recognizer.predict(roi)
+            cv2.rectangle(frame, (x, y), (x+w, y+h), (0,255,0), 2)
+            if conf < 70:
+                # Log attendance
+                try:
+                    conn = mysql.connector.connect(**db_config)
+                    cursor = conn.cursor()
+                    now = datetime.datetime.now()
+                    cursor.execute(
+                        "INSERT INTO attendance (student_id, subject, timestamp, status) VALUES (%s,%s,%s,%s)",
+                        (str(id_), "General", now, "present")
+                    )
+                    conn.commit()
+                    cursor.close()
+                    conn.close()
+                    print(f"✅ Attendance recorded for {id_}")
+                except Exception as e:
+                    print("⚠️ DB error:", e)
+
+        # Show frame in OpenCV window
+        cv2.imshow("Camera Preview", frame)
+
+        # Exit after 10 seconds or on 'q' key
+        if cv2.waitKey(1) & 0xFF == ord('q') or (time.time() - start_time > 10):
+            break
+
     cap.release()
+    cv2.destroyAllWindows()
 
-run_camera()
+if __name__ == "__main__":
+    run_camera()
