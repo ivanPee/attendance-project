@@ -1,18 +1,15 @@
 import tkinter as tk
 import subprocess
-import time
 import requests
 import email.utils
+import time
 import os
 
-# -----------------------------
-# Database & Model (optional)
-# -----------------------------
 SERVER_MODEL_URL = "http://192.168.1.4/attendance-project/web/public/trained_model.yml"
 LOCAL_MODEL = "trained_model.yml"
 
 def update_model():
-    """Download the model if newer on server"""
+    """Download the model if newer on server."""
     try:
         r = requests.head(SERVER_MODEL_URL, timeout=5)
         if r.status_code != 200:
@@ -35,26 +32,26 @@ def update_model():
     except Exception as e:
         print("⚠️ Model update error:", e)
 
-# -----------------------------
-# Camera Preview
-# -----------------------------
 def start_recognition():
-    """Open camera preview using rpicam-hello in a separate window"""
+    """Open camera preview and wait until it closes before restoring button."""
     btn.pack_forget()
     status_label.config(text="📷 Opening camera preview...")
     root.update()
 
-    # Update model (optional)
+    # Optional: update model
     update_model()
 
-    # Launch rpicam-hello preview
-    subprocess.Popen([
-        "rpicam-hello",
-        "--qt-preview"
-    ])
+    # Launch camera preview and **wait for it to finish**
+    try:
+        subprocess.run([
+            "rpicam-hello",
+            "--qt-preview"
+        ], check=True)  # This blocks until the user closes the camera preview
+    except subprocess.CalledProcessError as e:
+        print("⚠️ Camera preview failed:", e)
 
-    # Restore the button after delay (so user can tap again)
-    root.after(2000, show_button)
+    # After camera closes, restore button
+    show_button()
 
 def show_button():
     status_label.config(text="")
@@ -67,15 +64,17 @@ root = tk.Tk()
 root.attributes("-fullscreen", True)
 root.config(bg="white")
 
-# Status label
 status_label = tk.Label(root, text="", font=("Arial", 28), bg="white")
 status_label.pack(pady=20)
 
-# Button to start recognition / camera
 btn = tk.Button(
-    root, text="📷 Tap to Get Attendance",
-    font=("Arial", 36), bg="#007bff", fg="white",
-    width=20, height=3,
+    root,
+    text="📷 Tap to Get Attendance",
+    font=("Arial", 36),
+    bg="#007bff",
+    fg="white",
+    width=20,
+    height=3,
     command=start_recognition
 )
 btn.pack(pady=50)
