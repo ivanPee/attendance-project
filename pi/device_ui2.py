@@ -1,11 +1,9 @@
 import tkinter as tk
 import subprocess
 import requests
-import email.utils
 import time
+import email.utils
 import os
-import mysql.connector
-import datetime
 
 # Database config
 db_config = {
@@ -42,27 +40,29 @@ def update_model():
     except Exception as e:
         print("⚠️ Model update error:", e)
 
+
 def start_recognition():
-    """Open a new window running the camera preview."""
+    """Open the camera in a separate window using camera_window.py."""
     btn.pack_forget()
-    status_label.config(text="📷 Opening camera preview...")
+    status_label.config(text="📷 Starting camera...")
     root.update()
 
-    # Update model before starting camera
     update_model()
 
-    # Open a separate process for the camera preview
+    # Launch camera window in a separate process
     subprocess.Popen([
         "python3",
-        "/home/raspberrypi/attendance/attendance-project/pi/camera_window.py"
+        os.path.join(os.path.dirname(__file__), "camera_window.py")
     ])
 
-    # Restore the button after a short delay
+    # Restore button after delay
     root.after(2000, show_button)
+
 
 def show_button():
     status_label.config(text="")
     btn.pack(pady=50)
+
 
 # Tkinter UI
 root = tk.Tk()
@@ -72,16 +72,10 @@ root.config(bg="white")
 status_label = tk.Label(root, text="", font=("Arial", 28), bg="white")
 status_label.pack(pady=20)
 
-btn = tk.Button(
-    root,
-    text="📷 Tap to Get Attendance",
-    font=("Arial", 36),
-    bg="#007bff",
-    fg="white",
-    width=20,
-    height=3,
-    command=start_recognition
-)
+btn = tk.Button(root, text="📷 Tap to Get Attendance",
+                font=("Arial", 36), bg="#007bff", fg="white",
+                width=20, height=3,
+                command=start_recognition)
 btn.pack(pady=50)
 
 root.mainloop()
