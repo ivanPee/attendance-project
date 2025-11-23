@@ -1,7 +1,8 @@
 import cv2
 
 def run_camera():
-    cap = cv2.VideoCapture("libcamerasrc ! videoconvert ! appsink", cv2.CAP_GSTREAMER)
+    # Try simple V4L2 interface
+    cap = cv2.VideoCapture(0)  # /dev/video0
 
     if not cap.isOpened():
         print("⚠️ Cannot open camera")
