@@ -1,51 +1,78 @@
 import cv2
-from PIL import Image, ImageTk
-import tkinter as tk
 import time
+from PIL import Image  # optional if you need image processing
+import mysql.connector
+import datetime
+
+# Database config
+db_config = {
+    'host': '192.168.1.4',
+    'user': 'root',
+    'password': '',
+    'database': 'attendance_db'
+}
+
+LOCAL_MODEL = "trained_model.yml"
 
 def run_camera():
-    # Create a separate Tkinter window for preview
-    win = tk.Tk()
-    win.attributes("-fullscreen", True)
-    win.title("Camera Preview")
-    win.configure(bg="black")
+    # Load recognizer
+    recognizer = cv2.face.LBPHFaceRecognizer_create()
+    recognizer.read(LOCAL_MODEL)
 
-    label = tk.Label(win, bg="black")
-    label.pack(fill="both", expand=True)
-
-    # Use Raspberry Pi camera with GStreamer
-    cap = cv2.VideoCapture("libcamerasrc ! videoconvert ! appsink", cv2.CAP_GSTREAMER)
-
-    # Load face cascade manually
     face_cascade = cv2.CascadeClassifier(
         "/usr/share/opencv4/haarcascades/haarcascade_frontalface_default.xml"
     )
 
-    def update():
+    # Try using 0 or GStreamer pipeline
+    cap = cv2.VideoCapture(0)
+
+    if not cap.isOpened():
+        print("❌ Camera failed to open")
+        return
+
+    cv2.namedWindow("Camera Preview", cv2.WINDOW_NORMAL)
+    cv2.setWindowProperty("Camera Preview", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
+    start_time = time.time()
+    while True:
         ret, frame = cap.read()
-        if ret:
-            # Convert to RGB for PIL
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        if not ret:
+            continue
 
-            # Detect faces
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            faces = face_cascade.detectMultiScale(gray, scaleFactor=1.2, minNeighbors=5)
-            for (x, y, w, h) in faces:
-                cv2.rectangle(frame_rgb, (x, y), (x+w, y+h), (0, 255, 0), 2)
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(gray, 1.2, 5)
 
-            img = Image.fromarray(frame_rgb)
-            imgtk = ImageTk.PhotoImage(image=img)
-            label.imgtk = imgtk
-            label.configure(image=imgtk)
-        else:
-            print("⚠️ Failed to read frame from camera")
+        for (x, y, w, h) in faces:
+            roi = gray[y:y+h, x:x+w]
+            roi = cv2.resize(roi, (200, 200))
+            id_, conf = recognizer.predict(roi)
+            cv2.rectangle(frame, (x, y), (x+w, y+h), (0,255,0), 2)
+            if conf < 70:
+                # Log attendance
+                try:
+                    conn = mysql.connector.connect(**db_config)
+                    cursor = conn.cursor()
+                    now = datetime.datetime.now()
+                    cursor.execute(
+                        "INSERT INTO attendance (student_id, subject, timestamp, status) VALUES (%s,%s,%s,%s)",
+                        (str(id_), "General", now, "present")
+                    )
+                    conn.commit()
+                    cursor.close()
+                    conn.close()
+                    print(f"✅ Attendance recorded for {id_}")
+                except Exception as e:
+                    print("⚠️ DB error:", e)
 
-        # Schedule next frame
-        label.after(10, update)
+        # Show frame in OpenCV window
+        cv2.imshow("Camera Preview", frame)
 
-    update()
-    win.mainloop()
+        # Exit after 10 seconds or on 'q' key
+        if cv2.waitKey(1) & 0xFF == ord('q') or (time.time() - start_time > 10):
+            break
+
     cap.release()
+    cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     run_camera()
