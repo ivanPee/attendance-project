@@ -5,9 +5,9 @@ import cv2
 # -----------------------------
 # Configuration
 # -----------------------------
-CAMERA_ID = 1  # /dev/video1 for your USB webcam
-PREVIEW_WIDTH = 640
-PREVIEW_HEIGHT = 480
+CAMERA_ID = 1  # USB webcam
+PREVIEW_WIDTH = 320
+PREVIEW_HEIGHT = 240
 FPS = 30
 
 # -----------------------------
@@ -15,7 +15,7 @@ FPS = 30
 # -----------------------------
 root = tk.Tk()
 root.title("Camera Preview")
-root.attributes("-fullscreen", True)
+root.attributes("-fullscreen", False)  # Windowed mode for debugging
 root.config(bg="black")
 
 label = tk.Label(root, bg="black")
@@ -24,10 +24,14 @@ label.pack(fill="both", expand=True)
 # -----------------------------
 # OpenCV capture
 # -----------------------------
-cap = cv2.VideoCapture(CAMERA_ID)
+cap = cv2.VideoCapture(CAMERA_ID, cv2.CAP_V4L2)  # Use V4L2 backend explicitly
 if not cap.isOpened():
     print("❌ Could not open camera")
     exit()
+
+# Try to set low resolution
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, PREVIEW_WIDTH)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, PREVIEW_HEIGHT)
 
 def update_frame():
     ret, frame = cap.read()
@@ -35,10 +39,10 @@ def update_frame():
         # Convert BGR to RGB
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-        # Resize to fit the preview area
+        # Resize to fit preview
         frame = cv2.resize(frame, (PREVIEW_WIDTH, PREVIEW_HEIGHT))
 
-        # Convert to Tkinter Image
+        # Convert to Tkinter image
         img = Image.fromarray(frame)
         imgtk = ImageTk.PhotoImage(image=img)
 
@@ -48,7 +52,6 @@ def update_frame():
     # Schedule next frame
     label.after(int(1000/FPS), update_frame)
 
-# Start updating frames
 update_frame()
 
 # Close camera on exit
