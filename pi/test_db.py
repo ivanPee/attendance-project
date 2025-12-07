@@ -1,7 +1,7 @@
 import mysql.connector
 
 db_config = {
-    'host': 'localhost',    # your XAMPP/MySQL server IP
+    'host': '192.168.1.5',    # your XAMPP/MySQL server IP
     'user': 'pi_user',        # the user you created
     'password': 'your_password',  # ⚠️ must match exactly the password you set
     'database': 'attendance_db'
