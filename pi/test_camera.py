@@ -1,23 +1,60 @@
+import tkinter as tk
+from PIL import Image, ImageTk
 import cv2
 
-cap = cv2.VideoCapture(1)
+# -----------------------------
+# Configuration
+# -----------------------------
+CAMERA_ID = 1  # /dev/video1 for your USB webcam
+PREVIEW_WIDTH = 640
+PREVIEW_HEIGHT = 480
+FPS = 30
 
+# -----------------------------
+# Tkinter window
+# -----------------------------
+root = tk.Tk()
+root.title("Camera Preview")
+root.attributes("-fullscreen", True)
+root.config(bg="black")
+
+label = tk.Label(root, bg="black")
+label.pack(fill="both", expand=True)
+
+# -----------------------------
+# OpenCV capture
+# -----------------------------
+cap = cv2.VideoCapture(CAMERA_ID)
 if not cap.isOpened():
     print("❌ Could not open camera")
     exit()
 
-print("✅ Camera opened. Press Q to quit.")
-
-while True:
+def update_frame():
     ret, frame = cap.read()
-    if not ret:
-        print("❌ Failed to read frame")
-        break
+    if ret:
+        # Convert BGR to RGB
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-    cv2.imshow("Camera Test", frame)
+        # Resize to fit the preview area
+        frame = cv2.resize(frame, (PREVIEW_WIDTH, PREVIEW_HEIGHT))
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+        # Convert to Tkinter Image
+        img = Image.fromarray(frame)
+        imgtk = ImageTk.PhotoImage(image=img)
 
-cap.release()
-cv2.destroyAllWindows()
+        label.imgtk = imgtk
+        label.configure(image=imgtk)
+
+    # Schedule next frame
+    label.after(int(1000/FPS), update_frame)
+
+# Start updating frames
+update_frame()
+
+# Close camera on exit
+def on_close():
+    cap.release()
+    root.destroy()
+
+root.protocol("WM_DELETE_WINDOW", on_close)
+root.mainloop()
