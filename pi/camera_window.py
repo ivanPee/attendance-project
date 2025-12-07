@@ -1,54 +1,44 @@
-import cv2
-from PIL import Image, ImageTk
 import tkinter as tk
+from PIL import Image, ImageTk
+import cv2
+
+CAMERA_ID = 1
+PREVIEW_WIDTH = 320
+PREVIEW_HEIGHT = 240
+FPS = 30
 
 def run_camera():
-    # Smaller preview size
-    PREVIEW_WIDTH = 320
-    PREVIEW_HEIGHT = 240
+    root = tk.Tk()
+    root.title("Camera Window")
+    root.attributes("-fullscreen", False)
+    root.config(bg="black")
 
-    win = tk.Tk()
-    win.title("Camera Window")
-    win.configure(bg="black")
-    
-    # Set fixed window size
-    win.minsize(PREVIEW_WIDTH, PREVIEW_HEIGHT)
-    win.geometry(f"{PREVIEW_WIDTH}x{PREVIEW_HEIGHT}")
-
-    label = tk.Label(win, bg="black")
+    label = tk.Label(root, bg="black")
     label.pack(fill="both", expand=True)
 
-    # Use the correct camera source for Raspberry Pi Camera
-    cap = cv2.VideoCapture(0)
-
-    if not cap.isOpened():
-        print("⚠️ Failed to open camera")
-        return
+    cap = cv2.VideoCapture(CAMERA_ID, cv2.CAP_V4L2)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, PREVIEW_WIDTH)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, PREVIEW_HEIGHT)
 
     def update():
         ret, frame = cap.read()
         if ret:
-            # Resize frame to fit the window while maintaining aspect ratio
-            frame_height, frame_width = frame.shape[:2]
-            scale_w = PREVIEW_WIDTH / frame_width
-            scale_h = PREVIEW_HEIGHT / frame_height
-            scale = min(scale_w, scale_h)
-            new_w = int(frame_width * scale)
-            new_h = int(frame_height * scale)
-            frame_resized = cv2.resize(frame, (new_w, new_h))
-
-            frame_rgb = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
-            img = Image.fromarray(frame_rgb)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame = cv2.resize(frame, (PREVIEW_WIDTH, PREVIEW_HEIGHT))
+            img = Image.fromarray(frame)
             imgtk = ImageTk.PhotoImage(image=img)
             label.imgtk = imgtk
             label.configure(image=imgtk)
-
-        label.after(30, update)  # ~30 FPS
+        label.after(int(1000/FPS), update)
 
     update()
-    win.mainloop()
-    cap.release()
 
+    def on_close():
+        cap.release()
+        root.destroy()
+
+    root.protocol("WM_DELETE_WINDOW", on_close)
+    root.mainloop()
 
 if __name__ == "__main__":
     run_camera()
