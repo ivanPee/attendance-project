@@ -90,7 +90,10 @@ def start_recognition():
         root.after(3000, show_button)
         return
 
-    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+    # Use system Haar cascade path
+    face_cascade_path = "/usr/share/opencv/haarcascades/haarcascade_frontalface_default.xml"
+    face_cascade = cv2.CascadeClassifier(face_cascade_path)
+
     cap = cv2.VideoCapture(CAMERA_ID, cv2.CAP_V4L2)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, PREVIEW_WIDTH)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, PREVIEW_HEIGHT)
