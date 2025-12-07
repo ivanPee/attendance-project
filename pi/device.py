@@ -13,8 +13,8 @@ import mysql.connector
 # -----------------------------
 db_config = {
     'host': '192.168.1.5',
-    'user': 'root',
-    'password': '',
+    'user': 'pi_user',
+    'password': 'your_password',
     'database': 'attendance_db'
 }
 
