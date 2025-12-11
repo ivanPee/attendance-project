@@ -12,13 +12,13 @@ import mysql.connector
 # Database & Model Config
 # -----------------------------
 db_config = {
-    'host': '192.168.1.5',
+    'host': '10.92.170.83',
     'user': 'pi_user',
     'password': 'your_password',
     'database': 'attendance_db'
 }
 
-SERVER_MODEL_URL = "http://192.168.1.5/attendance-project/web/public/trained_model.yml"
+SERVER_MODEL_URL = "http://10.92.170.83:8080/attendance/web/public/trained_model.yml"
 LOCAL_MODEL = "trained_model.yml"
 
 CAMERA_ID = 1           # USB webcam
@@ -90,12 +90,25 @@ def start_recognition():
         root.after(3000, show_button)
         return
 
-    # Use system Haar cascade path
-    # Load the Haar cascade from the local project folder
+    # Load Haar cascade
     face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
 
+    # Try multiple camera IDs
+    cap = None
+    for cam_id in [CAMERA_ID, 0]:  # try CAMERA_ID first, then 0
+        cap = cv2.VideoCapture(cam_id, cv2.CAP_V4L2)
+        if cap.isOpened():
+            print(f"Using camera {cam_id}")
+            break
+        else:
+            cap.release()
+            cap = None
 
-    cap = cv2.VideoCapture(CAMERA_ID, cv2.CAP_V4L2)
+    if cap is None:
+        status_label.config(text="❌ No camera available")
+        root.after(3000, show_button)
+        return
+
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, PREVIEW_WIDTH)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, PREVIEW_HEIGHT)
 
