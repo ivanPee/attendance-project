@@ -93,22 +93,7 @@ def start_recognition():
     # Load Haar cascade
     face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
 
-    # Try multiple camera IDs
-    cap = None
-    for cam_id in [CAMERA_ID, 0]:  # try CAMERA_ID first, then 0
-        cap = cv2.VideoCapture(cam_id, cv2.CAP_V4L2)
-        if cap.isOpened():
-            print(f"Using camera {cam_id}")
-            break
-        else:
-            cap.release()
-            cap = None
-
-    if cap is None:
-        status_label.config(text="❌ No camera available")
-        root.after(3000, show_button)
-        return
-
+    cap = cv2.VideoCapture(CAMERA_ID, cv2.CAP_V4L2)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, PREVIEW_WIDTH)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, PREVIEW_HEIGHT)
 
