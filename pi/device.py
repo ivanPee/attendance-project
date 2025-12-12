@@ -21,7 +21,7 @@ db_config = {
 SERVER_MODEL_URL = "http://10.92.170.83:8080/attendance/web/public/trained_model.yml"
 LOCAL_MODEL = "trained_model.yml"
 
-CAMERA_ID = 1           # USB webcam
+CAMERA_ID = 0           # USB webcam
 PREVIEW_WIDTH = 320
 PREVIEW_HEIGHT = 240
 FPS = 30
