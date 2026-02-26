@@ -23,8 +23,8 @@ SERVER_MODEL_URL = "http://10.92.170.83:8080/attendance/web/public/trained_model
 LOCAL_MODEL = "trained_model.yml" 
 
 CAMERA_ID = 1 # USB webcam 
-PREVIEW_WIDTH = 320 
-PREVIEW_HEIGHT = 240 
+PREVIEW_WIDTH = 640
+PREVIEW_HEIGHT = 480 
 FPS = 30 
 
 # ----------------------------- 
@@ -94,17 +94,22 @@ def start_recognition():
         
     # Use system Haar cascade path 
     # Load the Haar cascade from the local project folder 
-    face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml") 
+    face_cascade = cv2.CascadeClassifier(
+        cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+    )
     
     cap = cv2.VideoCapture(CAMERA_ID, cv2.CAP_V4L2) 
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, PREVIEW_WIDTH) 
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, PREVIEW_HEIGHT) 
     
     start_time = time.time() 
-    recognized = False 
+    recognized = False
+    
+    match_count = 0
+    REQUIRED_MATCHES = 5
     
     def update_frame(): 
-        nonlocal recognized 
+        nonlocal recognized, match_count
         ret, frame = cap.read() 
         if not ret: 
             root.after(30, update_frame) 
@@ -115,19 +120,34 @@ def start_recognition():
         
         for (x, y, w, h) in faces: 
             roi = gray[y:y+h, x:x+w] 
-            roi = cv2.resize(roi, (200, 200)) 
+            roi = gray[y:y+h, x:x+w]
+            roi = cv2.resize(roi, (200, 200))
+            
+            # Improve lighting
+            roi = cv2.equalizeHist(roi)
+            
+            # Reduce noise
+            roi = cv2.GaussianBlur(roi, (5,5), 0)
             id_, conf = recognizer.predict(roi) 
             cv2.rectangle(frame, (x, y), (x+w, y+h), (0,255,0), 2) 
 
-            if conf < 70: 
-                recognized = True 
-                if log_attendance(str(id_)): 
-                    status_label.config(text="✅ Attendance Recorded") 
-                else: 
-                    status_label.config(text="⚠️ DB Error Saving Attendance") 
-                cap.release() 
-                root.after(3000, show_button) 
-                return 
+            print(f"ID: {id_}, Confidence: {conf}")
+            if conf < 50:
+                match_count += 1
+            else:
+                match_count = 0
+            
+            if match_count >= REQUIRED_MATCHES:
+                recognized = True
+                
+                if log_attendance(str(id_)):
+                    status_label.config(text="✅ Attendance Recorded")
+                else:
+                    status_label.config(text="⚠️ DB Error Saving Attendance")
+            
+                cap.release()
+                root.after(3000, show_button)
+                return
         
         # Convert to Tkinter Image 
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) 
