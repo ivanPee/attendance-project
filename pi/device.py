@@ -13,13 +13,13 @@ import mysql.connector
 # ----------------------------- 
 
 db_config = { 
-    'host': '192.168.1.5', 
+    'host': '10.92.170.83', 
     'user': 'pi_user', 
     'password': 'your_password', 
     'database': 'attendance_db' 
 } 
 
-SERVER_MODEL_URL = "http://192.168.1.5/attendance-project/web/public/trained_model.yml" 
+SERVER_MODEL_URL = "http://10.92.170.83:8080/attendance/web/public/trained_model.yml" 
 LOCAL_MODEL = "trained_model.yml" 
 
 CAMERA_ID = 0 # USB webcam 
@@ -130,7 +130,7 @@ def start_recognition():
             cv2.rectangle(frame, (x, y), (x+w, y+h), (0,255,0), 2) 
 
             print(f"ID: {id_}, Confidence: {conf}")
-            if conf < 50:
+            if conf < 75:
                 match_count += 1
             else:
                 match_count = 0
