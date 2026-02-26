@@ -94,9 +94,7 @@ def start_recognition():
         
     # Use system Haar cascade path 
     # Load the Haar cascade from the local project folder 
-    face_cascade = cv2.CascadeClassifier(
-        cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-    )
+    face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
     
     cap = cv2.VideoCapture(CAMERA_ID, cv2.CAP_V4L2) 
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, PREVIEW_WIDTH) 
