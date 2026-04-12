@@ -13,13 +13,13 @@ import mysql.connector
 # ----------------------------- 
 
 db_config = { 
-    'host': '10.92.170.83', 
+    'host': '10.164.255.196', 
     'user': 'pi_user', 
     'password': 'your_password', 
     'database': 'attendance_db' 
 } 
 
-SERVER_MODEL_URL = "http://10.92.170.83:8080/attendance/web/public/trained_model.yml" 
+SERVER_MODEL_URL = "http://10.164.255.196:8080/attendance/web/public/trained_model.yml" 
 LOCAL_MODEL = "trained_model.yml" 
 
 CAMERA_ID = 0 # USB webcam 
